@@ -46,8 +46,8 @@ class Player
     end
   end
   
-  def check_action_for_feel(action, space, &block)
-    [:forward, :left, :right, :backward].each do |direction|
+  def check_action_for_feel(action, space, directions, &block)
+    directions.each do |direction|
       if @warrior.feel(direction).send(space)
         if block_given?
           block.call(direction)
@@ -59,32 +59,114 @@ class Player
     end
     return false
   end
-
-  def bind_enemy_if_nearby
-    check_action_for_feel(:bind!, :enemy?) do |direction|
+  
+  def bind_enemy_if_nearby(directions = [:right, :backward, :left, :forward])
+    return false if @bound.length > 2
+    check_action_for_feel(:bind!, :enemy?, directions) do |direction|
+      puts "Binding enemy"
       @bound << direction
       make(:bind!, direction)
     end
   end
 
-  def attack_enemy_if_nearby
-    check_action_for_feel(:attack!, :enemy?)
+  def attack_enemy_if_nearby(directions = [:right, :backward, :left, :forward])
+    check_action_for_feel(:attack!, :enemy?, directions)
   end
   
-  def save_captive_if_nearby
-    check_action_for_feel(:rescue!, :captive?) do |direction|
+  def save_captive_if_nearby(directions = [:right, :backward, :left, :forward])
+    check_action_for_feel(:rescue!, :captive?, directions) do |direction|
       if @bound.include?(direction)
+        puts "Attacking bound enemy"
         @bound.delete_if {|x| x == direction }
         make(:attack!, direction)
       else
+        puts "Rescuing Captive"
         make(:rescue!, direction)
       end
     end
   end
   
   def heal_if_bound_enemy_nearby
-    if !@bound.empty? && @warrior.health < 20
+    puts "Healing near bound enemy"
+    if !@bound.empty? && @warrior.health < 19
+      puts "Healing near bound enemy"
       make(:rest!)  
+    end
+  end
+
+  def alternatives(direction)
+    case direction
+    when :forward
+      [:left, :right, :backward]
+    when :backward
+      [:right, :left, :forward]
+    when :left
+      [:backward, :forward, :right]
+    when :right
+      [:forward, :backward, :left]
+    end 
+  end
+
+  def divert(direction)
+    puts "Diverting"
+    alternatives(direction).each do |d|
+      if @warrior.feel(d).empty?
+        return make(:walk!, d)
+      end
+    end
+  end
+
+  def head_to(type)
+    @warrior.listen.each do |space|
+      if space.send(type)
+        direction = @warrior.direction_of(space)
+        case @warrior.feel(direction)
+        when :stairs?
+          puts "Heading to any empty space targetting #{type}"
+          return divert(direction) 
+        else
+          puts "Heading to empty space targetting #{type}"
+          return make(:walk!, direction)
+        end
+      end
+    end 
+    return false 
+  end
+  
+  def handle_ticking_bomb
+    @warrior.listen.each do |space|
+      if space.ticking?
+        direction = @warrior.direction_of(space)
+        puts "Handling ticking bomb at #{direction}"
+        case 
+        when bind_enemy_if_nearby(alternatives(direction))
+        when attack_enemy_if_nearby
+        when @warrior.feel(direction).captive?
+          return make(:rescue!, direction)
+        else
+          @bound = []
+          head_to(:ticking?)
+        end
+        return true
+      end
+    end
+    return false
+  end
+
+  def head_to_captive
+    head_to(:captive?)
+  end
+  
+  def head_to_enemy
+    head_to(:enemy?)    
+  end
+  
+  def heal
+    if @warrior.health < 20 && @health <= @warrior.health
+      puts "Healing"
+      make(:rest!)
+    else
+      return false
     end
   end
 
@@ -106,12 +188,14 @@ class Player
     puts "Bound Enemies: #{@bound}"
 
     case
+    when handle_ticking_bomb
     when bind_enemy_if_nearby
+    when save_captive_if_nearby
     when heal_if_bound_enemy_nearby
     when attack_enemy_if_nearby
-    when save_captive_if_nearby
-    when @warrior.health < 20 && @health <= @warrior.health
-      make(:rest!)
+    when heal
+    when head_to_captive
+    when head_to_enemy
     else
       make(:walk!, @warrior.direction_of_stairs)
     end
