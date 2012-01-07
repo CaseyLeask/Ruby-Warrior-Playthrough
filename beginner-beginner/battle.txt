@@ -1,0 +1,52 @@
+Welcome to Ruby Warrior
+Starting Level 9
+- turn 1 -
+ -----------
+|>Ca  @ S wC|
+ -----------
+Old Health: 20
+New Health: 20
+Value of action: walk
+Beginner pivots backward
+Archer shoots forward and hits Beginner
+Beginner takes 3 damage, 17 health power left
+- turn 2 -
+ -----------
+|>Ca  @ S wC|
+ -----------
+Old Health: 20
+New Health: 17
+Value of action: pivot
+Beginner pivots backward
+Archer shoots forward and hits Beginner
+Beginner takes 3 damage, 14 health power left
+- turn 3 -
+ -----------
+|>Ca  @ S wC|
+ -----------
+Old Health: 17
+New Health: 14
+Value of action: pivot
+Beginner shoots forward and hits Thick Sludge
+Thick Sludge takes 3 damage, 21 health power left
+Archer shoots forward and hits Beginner
+Beginner takes 3 damage, 11 health power left
+- turn 4 -
+ -----------
+|>Ca  @ S wC|
+ -----------
+Old Health: 14
+New Health: 11
+Value of action: shoot
+Beginner pivots backward
+Archer shoots forward and hits Beginner
+Beginner takes 3 damage, 8 health power left
+- turn 5 -
+ -----------
+|>Ca  @ S wC|
+ -----------
+Old Health: 11
+New Health: 8
+Value of action: pivot
+Beginner pivots backward
+Archer shoots forward and hits Beginner
